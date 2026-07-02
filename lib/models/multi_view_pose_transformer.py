@@ -123,6 +123,7 @@ class MultiviewPosetransformer(nn.Module):
         self.reference_points = nn.Linear(cfg.DECODER.d_model, 3) 
 
         
+        self.grid_size = torch.tensor(cfg.MULTI_PERSON.SPACE_SIZE)
         self.grid_center = torch.tensor(cfg.MULTI_PERSON.SPACE_CENTER)
 
         decoder_layer = MvPDecoderLayer(cfg.MULTI_PERSON.SPACE_SIZE,

@@ -89,7 +89,7 @@ class FaceScape(Dataset):
 
         this_dir  = os.path.dirname(__file__)
         self.root = os.path.abspath(
-            os.path.join(this_dir, '../..', cfg.DATASET.ROOT, 'FaceScape')
+            os.path.join(cfg.DATASET.ROOT, 'virtual_camera_data')
         )
 
         self.db = self._build_db(is_train)
