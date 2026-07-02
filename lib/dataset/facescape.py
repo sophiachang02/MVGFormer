@@ -176,8 +176,11 @@ class FaceScape(Dataset):
         mins = all_joints.min(axis=0)
         maxs = all_joints.max(axis=0)
 
-        space_center = (mins + maxs) / 2.0
-        space_size   = (maxs - mins) * SPACE_MARGIN_RATIO
+        # Uniform cube from the largest extent, centered at origin so the
+        # sample_space initialization covers the face consistently.
+        extent = (maxs - mins).max()
+        space_size   = np.array([extent, extent, extent]) * SPACE_MARGIN_RATIO
+        space_center = np.array([0.0, 0.0, 0.0])
 
         return space_size.astype(np.float32), space_center.astype(np.float32)
 
