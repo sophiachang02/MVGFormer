@@ -142,6 +142,15 @@ def main():
 
     num_views = test_dataset.num_views
 
+    # Mirrors train_3d.py: datasets that derive their own query volume from GT
+    # landmark bounds (e.g. FaceScape) override the config's SPACE_SIZE/CENTER,
+    # so evaluation uses the same volume the checkpoint was trained with.
+    if hasattr(test_dataset, 'space_size') and hasattr(test_dataset, 'space_center'):
+        config.MULTI_PERSON.SPACE_SIZE = test_dataset.space_size
+        config.MULTI_PERSON.SPACE_CENTER = test_dataset.space_center
+        print(f'=> Using auto-derived space_size={test_dataset.space_size} '
+              f'space_center={test_dataset.space_center}')
+
     cudnn.benchmark = config.CUDNN.BENCHMARK
     torch.backends.cudnn.deterministic = config.CUDNN.DETERMINISTIC
     torch.backends.cudnn.enabled = config.CUDNN.ENABLED

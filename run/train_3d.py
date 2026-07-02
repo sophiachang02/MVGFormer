@@ -204,6 +204,15 @@ def main():
 
     num_views = train_dataset.num_views
 
+    # Datasets that can derive their own query volume from GT landmark bounds
+    # (e.g. FaceScape) override the config's SPACE_SIZE/SPACE_CENTER, so the
+    # model doesn't rely on a value hand-tuned for a particular dataset scale.
+    if hasattr(train_dataset, 'space_size') and hasattr(train_dataset, 'space_center'):
+        config.MULTI_PERSON.SPACE_SIZE = train_dataset.space_size
+        config.MULTI_PERSON.SPACE_CENTER = train_dataset.space_center
+        print(f'=> Using auto-derived space_size={train_dataset.space_size} '
+              f'space_center={train_dataset.space_center}')
+
     test_dataset = eval('dataset.' + config.DATASET.TEST_DATASET)(
         config, config.DATASET.TEST_SUBSET, False,
         transforms.Compose([

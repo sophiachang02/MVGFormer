@@ -34,6 +34,7 @@ NUM_LANDMARKS = 68
 NUM_CAMERAS   = 5
 SPLIT_AT      = 818   # captures 301-817 -> train (117), 818-847 -> val (29)
 ROOT_LANDMARK = 30    # nose tip as face root
+SPACE_MARGIN_RATIO = 1.5   # pad the auto query volume beyond the tightest GT bbox
 
 
 def _cam_local_to_world(lm_cam, R, t):
@@ -95,6 +96,16 @@ class FaceScape(Dataset):
         split = 'train' if is_train else 'val'
         logger.info(f'FaceScape {split}: {len(self.db)} captures loaded')
 
+        # Query volume (MULTI_PERSON.SPACE_SIZE/CENTER) is derived from the GT
+        # landmark bbox instead of a value hand-tuned per dataset scale. Computed
+        # over ALL captures (train+val) so train/val/standalone-eval scripts agree
+        # regardless of which split instantiates this dataset first.
+        self.space_size, self.space_center = self._compute_space_bounds()
+        logger.info(
+            f'FaceScape auto space_size={self.space_size.tolist()} '
+            f'space_center={self.space_center.tolist()}'
+        )
+
     def _build_db(self, is_train):
         db = []
         if not os.path.isdir(self.root):
@@ -139,6 +150,36 @@ class FaceScape(Dataset):
             db.append({'capture_id': cid, 'cams': cam_data})
 
         return db
+
+    def _compute_space_bounds(self):
+        """Bounding cube (size, center) around all GT landmarks across every
+        capture on disk (train+val), independent of any dataset-scale constant."""
+        capture_ids = sorted(
+            int(d) for d in os.listdir(self.root)
+            if os.path.isdir(os.path.join(self.root, d)) and d.isdigit()
+        )
+
+        all_joints = []
+        for cid in capture_ids:
+            cam0_dir  = os.path.join(self.root, str(cid), '0')
+            meta_path = os.path.join(cam0_dir, 'meta.json')
+            lm3_path  = os.path.join(cam0_dir, 'landmarks_3d.npy')
+            if not (os.path.isfile(meta_path) and os.path.isfile(lm3_path)):
+                continue
+
+            cam0    = _load_meta(meta_path)
+            lm_cam0 = np.load(lm3_path).astype(np.float64)
+            t0      = (-cam0['R'] @ cam0['T'].reshape(3))
+            all_joints.append(_cam_local_to_world(lm_cam0, cam0['R'], t0))
+
+        all_joints = np.concatenate(all_joints, axis=0)
+        mins = all_joints.min(axis=0)
+        maxs = all_joints.max(axis=0)
+
+        space_center = (mins + maxs) / 2.0
+        space_size   = (maxs - mins) * SPACE_MARGIN_RATIO
+
+        return space_size.astype(np.float32), space_center.astype(np.float32)
 
     def __len__(self):
         return len(self.db)
