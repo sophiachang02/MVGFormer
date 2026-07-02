@@ -318,7 +318,11 @@ def main():
 
                     precision = None
 
-                    if 'panoptic' in config.DATASET.TEST_DATASET \
+                    if 'facescape' in config.DATASET.TEST_DATASET:
+                        name_values, nme = test_loader.dataset.evaluate(preds, final_output_dir)
+                        logger.info(f'NME: {nme * 100:.3f}%')
+                        precision = 1.0 - nme
+                    elif 'panoptic' in config.DATASET.TEST_DATASET \
                             or 'h36m' in config.DATASET.TEST_DATASET:
                         # TODO: Update with new outputs. and with NMS.
                         mpjpe_threshold = np.arange(25, 155, 25)

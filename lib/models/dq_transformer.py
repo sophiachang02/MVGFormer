@@ -33,7 +33,7 @@
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
-from nis import cat
+from torch import cat
 
 import torch
 import torch.nn as nn
@@ -87,7 +87,7 @@ time_init_ref = AverageMeter()
 time_decoder_layers = AverageMeter()
 time_final_process = AverageMeter()
 
-def construct_output_from_origin(init_reference, device, calculate_2d=False,num_joints=15,convert_joint_format_indices=None):
+def construct_output_from_origin(init_reference, device, calculate_2d=False,num_joints=68,convert_joint_format_indices=None):
     output = {}
     num_classes = 2
     num_people = init_reference.shape[0]
@@ -316,8 +316,9 @@ class DyanmicQueryTransformer(MultiviewPosetransformer):
             # norm2absolute
             ref_points_root_abs = self.norm2absolute(root_coordinates)
 
-            # generate T-pose from root (no rotation, so only add offsets)
-            ref_points_abs = self.generate_T_pose(ref_points_root_abs)
+            # For face: repeat root position for each joint (no T-pose needed)
+            # Shape: (query_num, num_joints, 3)
+            ref_points_abs = ref_points_root_abs.unsqueeze(1).repeat(1, joint_num, 1)
 
             noise_ref_points = ref_points_abs.expand(batch_size,-1,-1,-1).view(batch_size, -1, 3)
             noise_ref_points = noise_ref_points.float()
@@ -498,7 +499,7 @@ class DyanmicQueryTransformer(MultiviewPosetransformer):
                 self.absolute2norm(meta[0]['roots_3d'].float())
             meta[0]['joints_3d_norm'] = \
                 self.absolute2norm(meta[0]['joints_3d'].float())
-            origin = construct_output_from_origin(reference_points, device=mask.device,convert_joint_format_indices=self.convert_joint_format_indices)
+            origin = construct_output_from_origin(reference_points, device=mask.device, num_joints=self.num_joints, convert_joint_format_indices=self.convert_joint_format_indices)
             indices = self.matcher(origin, meta) # groundtruth id, est id?
             ## and select valid ones to go into the following learning process!
             indices_est = [item[0] for item in indices]  # batch,(est id, gt id) #! padding to max len query
@@ -521,7 +522,7 @@ class DyanmicQueryTransformer(MultiviewPosetransformer):
             indices_all = indices         
             
             # update 
-            reference_points_filtered = [reference_point.view(-1,15,3)[indices_est[index],...].view(-1,3) for index,reference_point in enumerate(reference_points)] 
+            reference_points_filtered = [reference_point.view(-1,self.num_joints,3)[indices_est[index],...].view(-1,3) for index,reference_point in enumerate(reference_points)] 
 
             # Debug Code: Only keep the valid queries
             #! 'filter_valid_queries = True' has not checked for batching
@@ -662,7 +663,7 @@ class DyanmicQueryTransformer(MultiviewPosetransformer):
             
             # use initialized pose for data association
             if self.gt_match:
-                origin = construct_output_from_origin(init_reference, device=mask.device,convert_joint_format_indices=self.convert_joint_format_indices)
+                origin = construct_output_from_origin(init_reference, device=mask.device, num_joints=self.num_joints, convert_joint_format_indices=self.convert_joint_format_indices)
             else:
                 origin = None
             
@@ -722,7 +723,7 @@ class DyanmicQueryTransformer(MultiviewPosetransformer):
                 if self.open_loss_init:
                     # and add loss for initialization
                     
-                    origin_output = construct_output_from_origin(init_reference, device=mask.device,convert_joint_format_indices=self.convert_joint_format_indices)
+                    origin_output = construct_output_from_origin(init_reference, device=mask.device, num_joints=self.num_joints, convert_joint_format_indices=self.convert_joint_format_indices)
                     indices_origin_output = self.criterion.matcher(origin_output, meta)
                     loss_init_criterion = self.criterion.loss_poses(outputs=origin_output['pred_poses']['outputs_coord'], outputs_2d=None, \
                         meta=meta, indices=indices_origin_output, num_samples=None, output_abs_coord=True)  # use pose_loss only and ignore classification
