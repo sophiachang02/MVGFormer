@@ -34,7 +34,12 @@ NUM_LANDMARKS = 68
 NUM_CAMERAS   = 5
 SPLIT_AT      = 818   # captures 301-817 -> train (117), 818-847 -> val (29)
 ROOT_LANDMARK = 30    # nose tip as face root
-SPACE_MARGIN_RATIO = 1.5   # pad the auto query volume beyond the tightest GT bbox
+# Target fraction of the query volume that face landmarks should occupy.
+# 0.6 means the face spans 60% of each axis, leaving 20% padding on each side.
+# Larger values = tighter volume (more accurate init but less tolerance for
+# outlier captures); smaller values = looser volume (more robust init).
+TARGET_FILL = 0.60
+SPACE_MARGIN_RATIO = 1.0 / TARGET_FILL  # ≈ 1.67
 
 
 def _cam_local_to_world(lm_cam, R, t):
