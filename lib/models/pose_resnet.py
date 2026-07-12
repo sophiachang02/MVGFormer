@@ -112,7 +112,12 @@ class PoseResNet(nn.Module):
         self.inplanes = 64
         self.deconv_with_bias = cfg.POSE_RESNET.DECONV_WITH_BIAS
 
+        self.use_depth = getattr(cfg.POSE_RESNET, 'USE_DEPTH', False)
         super(PoseResNet, self).__init__()
+        if self.use_depth:
+            # 1x1 conv projects depth into RGB space; zero-init so depth starts inert
+            self.depth_proj = nn.Conv2d(1, 3, kernel_size=1, bias=False)
+            nn.init.zeros_(self.depth_proj.weight)
         self.conv1 = nn.Conv2d(3, 64, kernel_size=7, stride=2, padding=3,
                                bias=False)
         self.bn1 = nn.BatchNorm2d(64, momentum=BN_MOMENTUM)
@@ -196,6 +201,10 @@ class PoseResNet(nn.Module):
         return nn.Sequential(*layers)
 
     def forward(self, x, use_feat_level=[0, 1, 2]):
+        if self.use_depth and x.shape[1] == 4:
+            rgb   = x[:, :3, :, :]
+            depth = x[:, 3:4, :, :]
+            x = rgb + self.depth_proj(depth)
         x = self.conv1(x)
         x = self.bn1(x)
         x = self.relu(x)

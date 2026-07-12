@@ -1,0 +1,157 @@
+DEBUG:
+  PRINT_TO_FILE: false
+  LOG_VAL_LOSS: false
+  DEBUG: false
+  SAVE_HEATMAPS_GT: false
+  SAVE_HEATMAPS_PRED: false
+CUDNN:
+  BENCHMARK: true
+  DETERMINISTIC: false
+  ENABLED: true
+TRANSFORMER: 'dq_transformer'
+BACKBONE_MODEL: 'pose_resnet'
+MODEL: 'multi_person_posenet'
+DATA_DIR: ''
+GPUS: '0'
+OUTPUT_DIR: 'output'
+LOG_DIR: 'log'
+WORKERS: 4
+PRINT_FREQ: 100
+DATASET:
+  COLOR_RGB: true
+  TRAIN_DATASET: 'facescape_multiview'
+  TEST_DATASET: 'facescape_multiview'
+  DATA_FORMAT: jpg
+  DATA_AUGMENTATION: false
+  FLIP: false
+  ROOT: '/nfs/turbo/coe-igmr-pub/seoin/FaceScape'
+  ROT_FACTOR: 15
+  SCALE_FACTOR: 0.25
+  TEST_SUBSET: 'validation'
+  TRAIN_SUBSET: 'train'
+  ROOTIDX: 0
+  CAMERA_NUM: 5
+  NUM_VIEWS: 5
+  USE_RETINAFACE: true
+  USE_DEPTH: true
+  RETINAFACE_ROOT: '/nfs/turbo/coe-igmr-pub/seoin/Pytorch_Retinaface'
+  RETINAFACE_CHECKPOINT: '/nfs/turbo/coe-igmr-pub/seoin/trained_weights/Resnet50_Final.pth'
+  SUBSET_SELECTION: 'all'
+  FILTER_VALID_OBSERVATIONS: false
+  NMS_DETAIL: false
+NETWORK:
+  PRETRAINED_BACKBONE: 'models/pose_resnet50_panoptic.pth.tar'
+  PRETRAINED: ''
+  TARGET_TYPE: gaussian
+  IMAGE_SIZE:
+    - 256
+    - 256
+  HEATMAP_SIZE:
+    - 64
+    - 64
+  SIGMA: 3
+  NUM_JOINTS: 68
+  USE_GT: false
+POSE_RESNET:
+  FINAL_CONV_KERNEL: 1
+  USE_DEPTH: true
+  DECONV_WITH_BIAS: false
+  NUM_DECONV_LAYERS: 3
+  NUM_DECONV_FILTERS:
+    - 256
+    - 256
+    - 256
+  NUM_DECONV_KERNELS:
+    - 4
+    - 4
+    - 4
+  NUM_LAYERS: 50
+LOSS:
+  USE_TARGET_WEIGHT: true
+TRAIN:
+  BATCH_SIZE: 2
+  SHUFFLE: true
+  BEGIN_EPOCH: 0
+  END_EPOCH: 100
+  RESUME: false
+  OPTIMIZER: adam
+  LR: 0.0001
+TEST:
+  MODEL_FILE: ''
+  BATCH_SIZE: 2
+MULTI_PERSON:
+  SPACE_SIZE:
+    - 300.0
+    - 300.0
+    - 300.0
+  SPACE_CENTER:
+    - 0.0
+    - 0.0
+    - 0.0
+  INITIAL_CUBE_SIZE:
+    - 16
+    - 16
+    - 16
+  MAX_PEOPLE_NUM: 1
+  THRESHOLD: 0.3
+PICT_STRUCT:
+  GRID_SIZE:
+    - 300.0
+    - 300.0
+    - 300.0
+  CUBE_SIZE:
+    - 16
+    - 16
+    - 16
+DECODER:
+  t_pose_dir: './tpose.pt'
+  d_model: 256
+  nhead: 8
+  dim_feedforward: 1024
+  dropout: 0.1
+  activation: 'relu'
+  num_feature_levels: 1
+  dec_n_points: 8
+  num_decoder_layers: 4
+  return_intermediate_dec: true
+  num_instance: 256
+  num_keypoints: 68
+  with_pose_refine: true
+  aux_loss: false
+  lr_linear_proj_mult: 0.1
+  loss_pose_normalize: false
+  loss_joint_type: 'l1'
+  pred_class_fuse: 'mean'
+  pred_conf_threshold: 0.5
+  match_coord_est: 'abs'
+  match_coord_gt: 'norm'
+  detach_refpoints_cameraprj_firstlayer: true
+  fuse_view_feats: 'cat_proj'
+  epipolar_encoder: false
+  loss_pose_perprojection_2d: 0.0
+  loss_pose_perjoint: 5.0
+  loss_weight_loss_ce: 2.0
+  feature_update_method: MLP
+  init_self_attention: false
+  open_forward_ffn: true
+  query_filter_method: threshold
+  init_ref_method: sample_space
+  init_ref_method_value: 0
+  gt_match: true
+  optimizer: adam
+  query_embed_type: person_joint
+  projattn_posembed_mode: ablation_not_use_rayconv
+  use_feat_level:
+    - 0
+    - 1
+    - 2
+  match_method: KNN
+  match_method_value: 5
+  close_pose_embedding: false
+  share_layer_weights: false
+  use_ce_match: false
+  filter_query: true
+  inference_conf_thr:
+    - 0.1
+  loss_weight_init: 0.0
+  use_loss_pose_perprojection_2d: false
