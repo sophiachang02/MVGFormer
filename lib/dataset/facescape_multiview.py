@@ -1,5 +1,6 @@
 '''	
-V1 RGB only 18.99%, V2 RetinaFace 15.12%
+V1 RGB only 18.99%
+V2 RetinaFace 15.12% (Epoch 93/150)
 '''
 
 import os
