@@ -1,23 +1,6 @@
-"""
-lib/dataset/facescape.py  — version using nose tip (landmark 30) as root.
-This is the version that achieved NME 4.615% at epoch 99.
-
-Confirmed structure:
-    FaceScape/
-        <capture_id>/          e.g. 301/, 302/, ...
-            <cam_id>/          0/, 1/, 2/, 3/, 4/
-                meta.json      K (3x3), R (3x3), t (3,)  camera-local extrinsics
-                landmarks_3d.npy  (68, 3) float64  camera-local coords, mm
-                landmarks_2d.npy  (68, 2) float64  pixel coords
-                depth.npy         (512, 512) float32  mm
-                rgb.png           512x512
-
-World-frame GT: R.T @ (lm_cam - t), confirmed std=0.000 across all cameras.
-Camera dict T convention matches panoptic.py: T = -R.T @ t.
-k/p shapes match panoptic.py: (3,1) and (2,1).
-roots_3d uses nose tip (landmark 30).
-mean_face_shape used for query initialisation in dq_transformer.py.
-"""
+'''	
+NME 5.3%, face occupies (TARGET_FILL)% of volume
+'''
 
 import os
 import json
