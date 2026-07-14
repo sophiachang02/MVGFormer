@@ -1,7 +1,7 @@
-'''	
-V1 RGB only 18.99%
-V2 RetinaFace 15.12% (Epoch 93/150)
-'''
+"""
+V1 RGB only 18.99%, V2 RetinaFace 15.12% (at Epoch 94/150)
+V3 RGBD only 33.065% (at Epoch 25/100), V4 RetinaFace 36.480% (at Epoch 23/100)
+"""
 
 import os
 import json
@@ -35,7 +35,7 @@ LM_INDICES = [
 
 
 def _load_tu_landmarks_world(obj_path, scale, Rt):
-    # Load TU .obj -> world-frame meters via inverse of Rt_scale alignment
+    """Load TU .obj -> world-frame meters via inverse of Rt_scale alignment."""
     verts = []
     with open(obj_path, 'r') as f:
         for line in f:
@@ -50,13 +50,13 @@ def _load_tu_landmarks_world(obj_path, scale, Rt):
 
 
 def _tu_landmarks_scaled(obj_path, scale, Rt):
-    # Load TU landmarks in TU-scale mm (world_m * scale). IOD ~96mm
+    """Load TU landmarks in TU-scale mm (world_m * scale). IOD ~96mm."""
     lm_m = _load_tu_landmarks_world(obj_path, scale, Rt)
     return (lm_m * scale).astype(np.float32)  # (68,3) TU-scale mm
 
 
 def _parse_params_json(params_path, scale_factor, global_center=None):
-    # Parse params.json -> {view_idx: cam_dict}. t in meters -> TU-scale mm
+    """Parse params.json -> {view_idx: cam_dict}. t in meters -> TU-scale mm."""
     with open(params_path, 'r') as f:
         raw = json.load(f)
 

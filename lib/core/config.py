@@ -168,6 +168,7 @@ config.TRAIN.BEGIN_EPOCH = 0
 config.TRAIN.END_EPOCH = 140
 
 config.TRAIN.RESUME = False
+config.TRAIN.VAL_FREQ = 1
 config.TRAIN.FINETUNE_MODEL = None
 
 config.TRAIN.BATCH_SIZE = 8
